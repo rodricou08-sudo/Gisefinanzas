@@ -1,1 +1,1637 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finanzas Personales</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
 
+    :root {
+        --bg: #ffffff;
+        --bg-soft: #f7f7f7;
+        --bg-hover: #f0f0f0;
+        --border: #e5e5e5;
+        --border-strong: #d0d0d0;
+        --text: #111111;
+        --text-mid: #555555;
+        --text-light: #888888;
+        --blue: #2563eb;
+        --blue-soft: #eff4ff;
+        --green: #16a34a;
+        --green-soft: #e8f5ec;
+        --red: #dc2626;
+        --red-soft: #fdecec;
+        --yellow: #ca8a04;
+        --yellow-soft: #fef8e0;
+    }
+
+    body {
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .app {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    /* ── Header ───────────────────────────────── */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 20px;
+        border-bottom: 2px solid var(--text);
+        margin-bottom: 32px;
+    }
+    .header h1 {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+    }
+    .header .date {
+        font-size: 13px;
+        color: var(--text-mid);
+    }
+
+    /* ── Tabs ─────────────────────────────────── */
+    .tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 32px;
+        border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+    }
+    .tab {
+        padding: 12px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-mid);
+        background: transparent;
+        border: none;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s;
+        margin-bottom: -1px;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active {
+        color: var(--text);
+        border-bottom-color: var(--text);
+    }
+
+    /* ── Section ──────────────────────────────── */
+    .section-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        letter-spacing: -0.01em;
+    }
+    .section-subtitle {
+        font-size: 13px;
+        color: var(--text-mid);
+        margin-bottom: 20px;
+    }
+
+    /* ── KPI cards ────────────────────────────── */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+    @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 520px) { .kpi-grid { grid-template-columns: 1fr; } }
+
+    .kpi {
+        padding: 20px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+    }
+    .kpi-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-light);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 10px;
+    }
+    .kpi-value {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+    .kpi-sub {
+        font-size: 12px;
+        color: var(--text-mid);
+        margin-top: 6px;
+    }
+    .kpi-sub.pos { color: var(--green); font-weight: 600; }
+    .kpi-sub.neg { color: var(--red); font-weight: 600; }
+
+    /* ── Cards ────────────────────────────────── */
+    .card {
+        border: 1px solid var(--border);
+        padding: 24px;
+        background: var(--bg);
+        margin-bottom: 20px;
+    }
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+    }
+    .card-title {
+        font-size: 17px;
+        font-weight: 700;
+    }
+
+    .row-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    @media (max-width: 900px) { .row-2 { grid-template-columns: 1fr; } }
+
+    /* ── Tables ───────────────────────────────── */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+    th {
+        text-align: left;
+        padding: 10px 12px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-light);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        border-bottom: 2px solid var(--text);
+    }
+    th.right, td.right { text-align: right; }
+    td {
+        padding: 12px;
+        border-bottom: 1px solid var(--border);
+    }
+    tr:hover td { background: var(--bg-soft); }
+    tr.total-row td {
+        font-weight: 700;
+        border-top: 2px solid var(--text);
+        background: var(--bg-soft);
+    }
+
+    /* ── Forms ────────────────────────────────── */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-mid);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    input, select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--border-strong);
+        background: var(--bg);
+        font-size: 14px;
+        color: var(--text);
+        outline: none;
+        transition: border-color 0.15s;
+    }
+    input:focus, select:focus { border-color: var(--text); }
+
+    /* ── Buttons ──────────────────────────────── */
+    .btn {
+        padding: 10px 18px;
+        background: var(--text);
+        color: var(--bg);
+        border: 1px solid var(--text);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-secondary {
+        background: var(--bg);
+        color: var(--text);
+    }
+    .btn-secondary:hover { background: var(--bg-hover); opacity: 1; }
+    .btn-danger {
+        background: var(--bg);
+        color: var(--red);
+        border: 1px solid var(--border);
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+    .btn-danger:hover { background: var(--red-soft); border-color: var(--red); }
+
+    /* ── Badges ───────────────────────────────── */
+    .badge {
+        display: inline-block;
+        padding: 3px 8px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+    }
+    .badge-green { background: var(--green-soft); color: var(--green); }
+    .badge-red { background: var(--red-soft); color: var(--red); }
+    .badge-yellow { background: var(--yellow-soft); color: var(--yellow); }
+    .badge-blue { background: var(--blue-soft); color: var(--blue); }
+    .badge-gray { background: var(--bg-soft); color: var(--text-mid); }
+
+    /* ── Alerts ───────────────────────────────── */
+    .alert {
+        padding: 16px 20px;
+        margin-bottom: 20px;
+        border-left: 4px solid;
+        background: var(--bg-soft);
+    }
+    .alert.warning { border-color: var(--yellow); background: var(--yellow-soft); }
+    .alert.danger { border-color: var(--red); background: var(--red-soft); }
+    .alert.success { border-color: var(--green); background: var(--green-soft); }
+    .alert.info { border-color: var(--blue); background: var(--blue-soft); }
+    .alert-title {
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+    .alert-text { font-size: 13px; color: var(--text-mid); }
+
+    /* ── Score ────────────────────────────────── */
+    .score-card {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 40px;
+        align-items: center;
+    }
+    @media (max-width: 700px) {
+        .score-card { grid-template-columns: 1fr; text-align: center; }
+    }
+    .score-circle {
+        position: relative;
+        width: 200px;
+        height: 200px;
+    }
+    .score-number {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    .score-number .val {
+        font-size: 56px;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.03em;
+    }
+    .score-number .max {
+        font-size: 13px;
+        color: var(--text-light);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-top: 4px;
+    }
+    .score-label {
+        font-size: 14px;
+        font-weight: 700;
+        margin-top: 10px;
+    }
+    .score-details .metric-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+    }
+    .score-details .metric-row:last-child { border-bottom: none; }
+    .score-details .metric-label { color: var(--text-mid); }
+    .score-details .metric-value { font-weight: 700; }
+
+    /* ── Chart ────────────────────────────────── */
+    .chart-box {
+        position: relative;
+        height: 260px;
+    }
+
+    /* ── Projection ───────────────────────────── */
+    .projection {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0;
+        border: 1px solid var(--border);
+    }
+    @media (max-width: 700px) { .projection { grid-template-columns: 1fr; } }
+    .projection-col {
+        padding: 20px;
+        border-right: 1px solid var(--border);
+        text-align: center;
+    }
+    @media (max-width: 700px) { .projection-col { border-right: none; border-bottom: 1px solid var(--border); } }
+    .projection-col:last-child { border-right: none; border-bottom: none; }
+    .projection-col .pc-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-light);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 8px;
+    }
+    .projection-col .pc-value {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+    }
+
+    /* ── Calculator ───────────────────────────── */
+    .calc-result {
+        border: 1px solid var(--border);
+        padding: 20px;
+        background: var(--bg-soft);
+        margin-top: 16px;
+    }
+    .calc-scenario {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 16px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--border);
+        align-items: center;
+    }
+    .calc-scenario:last-child { border-bottom: none; }
+    .calc-scenario .scenario-name {
+        font-weight: 700;
+        font-size: 14px;
+    }
+    .calc-scenario .scenario-detail {
+        font-size: 12px;
+        color: var(--text-mid);
+        margin-top: 2px;
+    }
+    .calc-scenario .scenario-value {
+        font-size: 18px;
+        font-weight: 700;
+        text-align: right;
+    }
+    .calc-verdict {
+        margin-top: 20px;
+        padding: 16px;
+        background: var(--bg);
+        border: 2px solid var(--text);
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    /* ── Empty state ──────────────────────────── */
+    .empty {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-light);
+        font-size: 14px;
+    }
+
+    .small-note {
+        font-size: 12px;
+        color: var(--text-light);
+        font-style: italic;
+        margin-top: 8px;
+    }
+
+    .delta-up { color: var(--red); font-weight: 600; }
+    .delta-down { color: var(--green); font-weight: 600; }
+
+    /* ── Debt strategy ────────────────────────── */
+    .strategy-toggle {
+        display: flex;
+        gap: 0;
+        border: 1px solid var(--border-strong);
+        margin-bottom: 20px;
+        width: fit-content;
+    }
+    .strategy-btn {
+        padding: 10px 20px;
+        background: var(--bg);
+        border: none;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        color: var(--text-mid);
+    }
+    .strategy-btn.active {
+        background: var(--text);
+        color: var(--bg);
+    }
+
+    .progress-bar {
+        height: 8px;
+        background: var(--bg-soft);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        margin-top: 8px;
+    }
+    .progress-fill {
+        height: 100%;
+        background: var(--text);
+        transition: width 0.3s;
+    }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useMemo, useRef } = React;
+
+// ═══════════════════════════════════════════════════════════════
+// STORAGE HELPERS
+// ═══════════════════════════════════════════════════════════════
+const STORAGE_KEY = "finanzas_mama_v1";
+
+const defaultState = {
+    ingresos: [
+        { id: 1, concepto: "Sueldo", monto: 45000, frecuencia: "mensual" },
+    ],
+    gastosFijos: [
+        { id: 1, concepto: "Alquiler", monto: 18000 },
+        { id: 2, concepto: "UTE", monto: 2500 },
+        { id: 3, concepto: "OSE", monto: 800 },
+        { id: 4, concepto: "Internet", monto: 1800 },
+        { id: 5, concepto: "Antel celular", monto: 900 },
+    ],
+    gastosVariables: [
+        { id: 1, fecha: new Date().toISOString().slice(0,10), concepto: "Supermercado", categoria: "Comida", monto: 4500 },
+        { id: 2, fecha: new Date().toISOString().slice(0,10), concepto: "Farmacia", categoria: "Salud", monto: 1200 },
+    ],
+    deudas: [
+        { id: 1, concepto: "Tarjeta Visa", monto: 32000, tasaAnual: 85, pagoMinimo: 3500 },
+    ],
+    cuotas: [
+        { id: 1, concepto: "Lavarropas Brick", cuotaMonto: 2800, cuotasTotales: 12, cuotasPagadas: 4, tasaAnual: 0, diaPago: 10 },
+    ]
+};
+
+const loadState = () => {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) return JSON.parse(saved);
+    } catch(e) { console.error(e); }
+    return defaultState;
+};
+
+const saveState = (state) => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    catch(e) { console.error(e); }
+};
+
+const fmt = (n) => new Intl.NumberFormat("es-UY", { style: "currency", currency: "UYU", maximumFractionDigits: 0 }).format(n);
+const fmtShort = (n) => "$" + Math.round(n).toLocaleString("es-UY");
+
+// ═══════════════════════════════════════════════════════════════
+// APP
+// ═══════════════════════════════════════════════════════════════
+function App() {
+    const [state, setState] = useState(loadState);
+    const [tab, setTab] = useState("resumen");
+
+    useEffect(() => { saveState(state); }, [state]);
+
+    // ── Cálculos derivados ──
+    const calcs = useMemo(() => {
+        const ingresoMensual = state.ingresos.reduce((s, i) => {
+            if (i.frecuencia === "mensual") return s + Number(i.monto);
+            if (i.frecuencia === "anual") return s + Number(i.monto) / 12;
+            if (i.frecuencia === "semanal") return s + Number(i.monto) * 4.33;
+            return s;
+        }, 0);
+
+        const gastosFijosTotal = state.gastosFijos.reduce((s, g) => s + Number(g.monto), 0);
+
+        // Gastos variables del mes actual
+        const hoy = new Date();
+        const mesActual = hoy.getMonth();
+        const anioActual = hoy.getFullYear();
+        const gastosVariablesMes = state.gastosVariables.filter(g => {
+            const d = new Date(g.fecha);
+            return d.getMonth() === mesActual && d.getFullYear() === anioActual;
+        });
+        const gastosVariablesTotal = gastosVariablesMes.reduce((s, g) => s + Number(g.monto), 0);
+
+        // Cuotas activas del mes
+        const cuotasActivas = state.cuotas.filter(c => c.cuotasPagadas < c.cuotasTotales);
+        const cuotasMensual = cuotasActivas.reduce((s, c) => s + Number(c.cuotaMonto), 0);
+
+        // Pago mínimo deudas
+        const deudasTotal = state.deudas.reduce((s, d) => s + Number(d.monto), 0);
+        const pagoMinimoDeudas = state.deudas.reduce((s, d) => s + Number(d.pagoMinimo || 0), 0);
+
+        const gastoTotalMes = gastosFijosTotal + gastosVariablesTotal + cuotasMensual + pagoMinimoDeudas;
+        const disponibleMes = ingresoMensual - gastoTotalMes;
+
+        // Proyección a fin de mes (basado en ritmo)
+        const diaHoy = hoy.getDate();
+        const diasEnMes = new Date(anioActual, mesActual + 1, 0).getDate();
+        const ritmoDiario = diaHoy > 0 ? gastosVariablesTotal / diaHoy : 0;
+        const proyeccionVariables = ritmoDiario * diasEnMes;
+        const proyeccionTotal = gastosFijosTotal + proyeccionVariables + cuotasMensual + pagoMinimoDeudas;
+        const proyeccionDisponible = ingresoMensual - proyeccionTotal;
+
+        // Próximas cuotas (7 días)
+        const en7Dias = new Date();
+        en7Dias.setDate(en7Dias.getDate() + 7);
+        const proximasCuotas = cuotasActivas.filter(c => {
+            const diaPago = c.diaPago;
+            const diaActual = hoy.getDate();
+            // si el día de pago es hoy o dentro de 7 días
+            if (diaPago >= diaActual && diaPago <= diaActual + 7) return true;
+            // caso mes siguiente
+            if (diaActual + 7 > diasEnMes && diaPago <= (diaActual + 7) - diasEnMes) return true;
+            return false;
+        });
+
+        // Gastos por categoría
+        const porCategoria = {};
+        gastosVariablesMes.forEach(g => {
+            porCategoria[g.categoria] = (porCategoria[g.categoria] || 0) + Number(g.monto);
+        });
+
+        // ═════════ SCORE FINANCIERO ═════════
+        // 5 factores, cada uno 0-100, total promedio
+        const factores = {};
+
+        // 1. Ratio deuda / ingreso (DTI) — lo ideal < 36%
+        const pagosDeudaMensual = cuotasMensual + pagoMinimoDeudas;
+        const dti = ingresoMensual > 0 ? (pagosDeudaMensual / ingresoMensual) * 100 : 100;
+        factores.dti = Math.max(0, Math.min(100, 100 - (dti * 2))); // 0% dti = 100, 50% dti = 0
+
+        // 2. Tasa de ahorro — cuánto queda libre vs ingreso
+        const tasaAhorro = ingresoMensual > 0 ? (disponibleMes / ingresoMensual) * 100 : 0;
+        factores.ahorro = Math.max(0, Math.min(100, tasaAhorro * 5)); // 20% ahorro = 100
+
+        // 3. Cobertura de gastos fijos — alerta si los fijos > 50% ingreso
+        const ratioFijos = ingresoMensual > 0 ? (gastosFijosTotal / ingresoMensual) * 100 : 100;
+        factores.fijos = Math.max(0, Math.min(100, 100 - (ratioFijos - 30) * 2));
+
+        // 4. Diversificación de deudas — penaliza tasas muy altas
+        const tasaPromedioDeudas = state.deudas.length > 0
+            ? state.deudas.reduce((s, d) => s + Number(d.tasaAnual), 0) / state.deudas.length
+            : 0;
+        factores.tasas = Math.max(0, Math.min(100, 100 - tasaPromedioDeudas));
+
+        // 5. Compromiso de ingreso futuro (cuotas pendientes)
+        const cuotasPendientes = cuotasActivas.reduce((s, c) => s + Number(c.cuotaMonto) * (c.cuotasTotales - c.cuotasPagadas), 0);
+        const compromisoFuturo = ingresoMensual > 0 ? (cuotasPendientes / (ingresoMensual * 12)) * 100 : 100;
+        factores.compromiso = Math.max(0, Math.min(100, 100 - compromisoFuturo));
+
+        const scoreTotal = Math.round(
+            (factores.dti + factores.ahorro + factores.fijos + factores.tasas + factores.compromiso) / 5
+        );
+
+        let scoreLabel = "Crítico";
+        if (scoreTotal >= 80) scoreLabel = "Excelente";
+        else if (scoreTotal >= 65) scoreLabel = "Bueno";
+        else if (scoreTotal >= 50) scoreLabel = "Regular";
+        else if (scoreTotal >= 35) scoreLabel = "Frágil";
+
+        return {
+            ingresoMensual, gastosFijosTotal, gastosVariablesTotal, cuotasMensual,
+            pagoMinimoDeudas, gastoTotalMes, disponibleMes,
+            proyeccionVariables, proyeccionTotal, proyeccionDisponible,
+            proximasCuotas, porCategoria, deudasTotal,
+            cuotasActivas, dti, tasaAhorro, scoreTotal, scoreLabel, factores,
+            cuotasPendientes
+        };
+    }, [state]);
+
+    return (
+        <div className="app">
+            <header className="header">
+                <h1>Finanzas Personales</h1>
+                <div className="date">{new Date().toLocaleDateString("es-UY", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</div>
+            </header>
+
+            <nav className="tabs">
+                <button className={`tab ${tab === "resumen" ? "active" : ""}`} onClick={() => setTab("resumen")}>Resumen del mes</button>
+                <button className={`tab ${tab === "ingresos" ? "active" : ""}`} onClick={() => setTab("ingresos")}>Ingresos</button>
+                <button className={`tab ${tab === "gastos" ? "active" : ""}`} onClick={() => setTab("gastos")}>Gastos</button>
+                <button className={`tab ${tab === "deudas" ? "active" : ""}`} onClick={() => setTab("deudas")}>Deudas y cuotas</button>
+                <button className={`tab ${tab === "score" ? "active" : ""}`} onClick={() => setTab("score")}>Score financiero</button>
+                <button className={`tab ${tab === "calculadora" ? "active" : ""}`} onClick={() => setTab("calculadora")}>¿Puedo comprarlo?</button>
+            </nav>
+
+            {tab === "resumen" && <TabResumen calcs={calcs} state={state} />}
+            {tab === "ingresos" && <TabIngresos state={state} setState={setState} />}
+            {tab === "gastos" && <TabGastos state={state} setState={setState} calcs={calcs} />}
+            {tab === "deudas" && <TabDeudas state={state} setState={setState} calcs={calcs} />}
+            {tab === "score" && <TabScore calcs={calcs} />}
+            {tab === "calculadora" && <TabCalculadora calcs={calcs} />}
+        </div>
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TAB: RESUMEN
+// ═══════════════════════════════════════════════════════════════
+function TabResumen({ calcs, state }) {
+    const chartRef = useRef(null);
+    const chartInstance = useRef(null);
+
+    useEffect(() => {
+        if (!chartRef.current) return;
+        if (chartInstance.current) chartInstance.current.destroy();
+
+        const cats = Object.entries(calcs.porCategoria);
+        if (cats.length === 0) return;
+
+        chartInstance.current = new Chart(chartRef.current, {
+            type: "doughnut",
+            data: {
+                labels: cats.map(c => c[0]),
+                datasets: [{
+                    data: cats.map(c => c[1]),
+                    backgroundColor: ["#2563eb", "#16a34a", "#dc2626", "#ca8a04", "#7c3aed", "#0891b2", "#db2777"],
+                    borderColor: "#ffffff",
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: "right", labels: { font: { family: "Arial", size: 12 }, boxWidth: 12, padding: 10 } },
+                    tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${fmt(ctx.parsed)}` } }
+                }
+            }
+        });
+
+        return () => { if (chartInstance.current) chartInstance.current.destroy(); };
+    }, [calcs]);
+
+    const proyeccionOk = calcs.proyeccionDisponible >= 0;
+
+    return (
+        <>
+            {/* Alertas */}
+            {calcs.proximasCuotas.length > 0 && (
+                <div className="alert warning">
+                    <div className="alert-title">Próximos vencimientos (7 días)</div>
+                    <div className="alert-text">
+                        {calcs.proximasCuotas.map(c => `${c.concepto} (día ${c.diaPago}, ${fmt(c.cuotaMonto)})`).join(" · ")}
+                    </div>
+                </div>
+            )}
+
+            {calcs.disponibleMes < 0 && (
+                <div className="alert danger">
+                    <div className="alert-title">Atención: gastos del mes superan ingresos</div>
+                    <div className="alert-text">Este mes estás gastando {fmt(Math.abs(calcs.disponibleMes))} más de lo que ingresa. Revisá gastos variables.</div>
+                </div>
+            )}
+
+            {!proyeccionOk && calcs.disponibleMes >= 0 && (
+                <div className="alert warning">
+                    <div className="alert-title">Proyección: podrías cerrar el mes en rojo</div>
+                    <div className="alert-text">Al ritmo actual de gasto, terminarías el mes con {fmt(calcs.proyeccionDisponible)}. Ajustá gastos variables.</div>
+                </div>
+            )}
+
+            {/* KPIs principales */}
+            <div className="kpi-grid">
+                <div className="kpi">
+                    <div className="kpi-label">Ingreso mensual</div>
+                    <div className="kpi-value">{fmt(calcs.ingresoMensual)}</div>
+                </div>
+                <div className="kpi">
+                    <div className="kpi-label">Gasto total del mes</div>
+                    <div className="kpi-value">{fmt(calcs.gastoTotalMes)}</div>
+                    <div className="kpi-sub">Fijos + variables + cuotas</div>
+                </div>
+                <div className="kpi">
+                    <div className="kpi-label">Disponible hoy</div>
+                    <div className="kpi-value" style={{color: calcs.disponibleMes >= 0 ? "var(--green)" : "var(--red)"}}>
+                        {fmt(calcs.disponibleMes)}
+                    </div>
+                    <div className={`kpi-sub ${calcs.disponibleMes >= 0 ? "pos" : "neg"}`}>
+                        {calcs.disponibleMes >= 0 ? "En equilibrio" : "En déficit"}
+                    </div>
+                </div>
+                <div className="kpi">
+                    <div className="kpi-label">Score financiero</div>
+                    <div className="kpi-value">{calcs.scoreTotal}<span style={{fontSize: "16px", color: "var(--text-light)", fontWeight: 400}}>/100</span></div>
+                    <div className="kpi-sub">{calcs.scoreLabel}</div>
+                </div>
+            </div>
+
+            {/* Proyección fin de mes */}
+            <div className="card">
+                <div className="card-header">
+                    <div className="card-title">Proyección a fin de mes</div>
+                </div>
+                <div className="projection">
+                    <div className="projection-col">
+                        <div className="pc-label">Gastado hasta hoy</div>
+                        <div className="pc-value">{fmt(calcs.gastosVariablesTotal)}</div>
+                    </div>
+                    <div className="projection-col">
+                        <div className="pc-label">Proyección variables</div>
+                        <div className="pc-value">{fmt(calcs.proyeccionVariables)}</div>
+                    </div>
+                    <div className="projection-col">
+                        <div className="pc-label">Cierre estimado</div>
+                        <div className="pc-value" style={{color: proyeccionOk ? "var(--green)" : "var(--red)"}}>
+                            {fmt(calcs.proyeccionDisponible)}
+                        </div>
+                    </div>
+                </div>
+                <div className="small-note">Calculado en base al ritmo diario de gasto del mes actual.</div>
+            </div>
+
+            <div className="row-2">
+                <div className="card">
+                    <div className="card-header"><div className="card-title">Gastos por categoría (este mes)</div></div>
+                    {Object.keys(calcs.porCategoria).length === 0
+                        ? <div className="empty">Aún no hay gastos cargados este mes.</div>
+                        : <div className="chart-box"><canvas ref={chartRef}></canvas></div>
+                    }
+                </div>
+
+                <div className="card">
+                    <div className="card-header"><div className="card-title">Desglose del mes</div></div>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td style={{color: "var(--text-mid)"}}>Gastos fijos</td>
+                                <td className="right">{fmt(calcs.gastosFijosTotal)}</td>
+                            </tr>
+                            <tr>
+                                <td style={{color: "var(--text-mid)"}}>Gastos variables</td>
+                                <td className="right">{fmt(calcs.gastosVariablesTotal)}</td>
+                            </tr>
+                            <tr>
+                                <td style={{color: "var(--text-mid)"}}>Cuotas ({calcs.cuotasActivas.length} activas)</td>
+                                <td className="right">{fmt(calcs.cuotasMensual)}</td>
+                            </tr>
+                            <tr>
+                                <td style={{color: "var(--text-mid)"}}>Pago mínimo deudas</td>
+                                <td className="right">{fmt(calcs.pagoMinimoDeudas)}</td>
+                            </tr>
+                            <tr className="total-row">
+                                <td>Total</td>
+                                <td className="right">{fmt(calcs.gastoTotalMes)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </>
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TAB: INGRESOS
+// ═══════════════════════════════════════════════════════════════
+function TabIngresos({ state, setState }) {
+    const [form, setForm] = useState({ concepto: "", monto: "", frecuencia: "mensual" });
+
+    const agregar = () => {
+        if (!form.concepto || !form.monto) return;
+        setState(s => ({
+            ...s,
+            ingresos: [...s.ingresos, { id: Date.now(), ...form, monto: Number(form.monto) }]
+        }));
+        setForm({ concepto: "", monto: "", frecuencia: "mensual" });
+    };
+
+    const eliminar = (id) => {
+        setState(s => ({ ...s, ingresos: s.ingresos.filter(i => i.id !== id) }));
+    };
+
+    const total = state.ingresos.reduce((s, i) => {
+        if (i.frecuencia === "mensual") return s + Number(i.monto);
+        if (i.frecuencia === "anual") return s + Number(i.monto) / 12;
+        if (i.frecuencia === "semanal") return s + Number(i.monto) * 4.33;
+        return s;
+    }, 0);
+
+    return (
+        <>
+            <h2 className="section-title">Ingresos</h2>
+            <p className="section-subtitle">Todas las fuentes de dinero que entran cada período. Se calcula el equivalente mensual.</p>
+
+            <div className="card">
+                <div className="card-header"><div className="card-title">Agregar ingreso</div></div>
+                <div className="form-grid">
+                    <div>
+                        <label>Concepto</label>
+                        <input type="text" placeholder="ej. Sueldo, jubilación" value={form.concepto}
+                            onChange={e => setForm({...form, concepto: e.target.value})} />
+                    </div>
+                    <div>
+                        <label>Monto ($)</label>
+                        <input type="number" placeholder="0" value={form.monto}
+                            onChange={e => setForm({...form, monto: e.target.value})} />
+                    </div>
+                    <div>
+                        <label>Frecuencia</label>
+                        <select value={form.frecuencia} onChange={e => setForm({...form, frecuencia: e.target.value})}>
+                            <option value="mensual">Mensual</option>
+                            <option value="semanal">Semanal</option>
+                            <option value="anual">Anual</option>
+                        </select>
+                    </div>
+                    <div style={{display: "flex", alignItems: "flex-end"}}>
+                        <button className="btn" onClick={agregar}>Agregar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="card">
+                <div className="card-header">
+                    <div className="card-title">Lista de ingresos</div>
+                    <div style={{fontSize: "13px", color: "var(--text-mid)"}}>Equivalente mensual: <strong>{fmt(total)}</strong></div>
+                </div>
+                {state.ingresos.length === 0 ? <div className="empty">Sin ingresos registrados.</div> : (
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Concepto</th>
+                                <th>Frecuencia</th>
+                                <th className="right">Monto</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {state.ingresos.map(i => (
+                                <tr key={i.id}>
+                                    <td><strong>{i.concepto}</strong></td>
+                                    <td><span className="badge badge-blue">{i.frecuencia}</span></td>
+                                    <td className="right">{fmt(i.monto)}</td>
+                                    <td className="right"><button className="btn-danger" onClick={() => eliminar(i.id)}>Eliminar</button></td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </div>
+        </>
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TAB: GASTOS
+// ═══════════════════════════════════════════════════════════════
+function TabGastos({ state, setState, calcs }) {
+    const [subtab, setSubtab] = useState("fijos");
+    const [formFijo, setFormFijo] = useState({ concepto: "", monto: "" });
+    const [formVar, setFormVar] = useState({
+        fecha: new Date().toISOString().slice(0,10),
+        concepto: "", categoria: "Comida", monto: ""
+    });
+
+    const categorias = ["Comida", "Salud", "Transporte", "Ropa", "Entretenimiento", "Servicios", "Otros"];
+
+    const agregarFijo = () => {
+        if (!formFijo.concepto || !formFijo.monto) return;
+        setState(s => ({ ...s, gastosFijos: [...s.gastosFijos, { id: Date.now(), ...formFijo, monto: Number(formFijo.monto) }] }));
+        setFormFijo({ concepto: "", monto: "" });
+    };
+
+    const agregarVar = () => {
+        if (!formVar.concepto || !formVar.monto) return;
+        setState(s => ({ ...s, gastosVariables: [...s.gastosVariables, { id: Date.now(), ...formVar, monto: Number(formVar.monto) }] }));
+        setFormVar({ ...formVar, concepto: "", monto: "" });
+    };
+
+    const eliminarFijo = (id) => setState(s => ({ ...s, gastosFijos: s.gastosFijos.filter(g => g.id !== id) }));
+    const eliminarVar = (id) => setState(s => ({ ...s, gastosVariables: s.gastosVariables.filter(g => g.id !== id) }));
+
+    return (
+        <>
+            <h2 className="section-title">Gastos</h2>
+            <p className="section-subtitle">Gastos fijos son los que se repiten todos los meses. Variables son los que cambian (mercado, salidas, etc).</p>
+
+            <div className="tabs" style={{marginBottom: "24px"}}>
+                <button className={`tab ${subtab === "fijos" ? "active" : ""}`} onClick={() => setSubtab("fijos")}>Fijos mensuales</button>
+                <button className={`tab ${subtab === "variables" ? "active" : ""}`} onClick={() => setSubtab("variables")}>Variables</button>
+            </div>
+
+            {subtab === "fijos" && (
+                <>
+                    <div className="card">
+                        <div className="card-header"><div className="card-title">Agregar gasto fijo</div></div>
+                        <div className="form-grid">
+                            <div>
+                                <label>Concepto</label>
+                                <input type="text" placeholder="ej. Alquiler, UTE" value={formFijo.concepto}
+                                    onChange={e => setFormFijo({...formFijo, concepto: e.target.value})} />
+                            </div>
+                            <div>
+                                <label>Monto mensual ($)</label>
+                                <input type="number" placeholder="0" value={formFijo.monto}
+                                    onChange={e => setFormFijo({...formFijo, monto: e.target.value})} />
+                            </div>
+                            <div style={{display: "flex", alignItems: "flex-end"}}>
+                                <button className="btn" onClick={agregarFijo}>Agregar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <div className="card-header">
+                            <div className="card-title">Gastos fijos</div>
+                            <div style={{fontSize: "13px"}}>Total: <strong>{fmt(calcs.gastosFijosTotal)}</strong></div>
+                        </div>
+                        {state.gastosFijos.length === 0 ? <div className="empty">Sin gastos fijos.</div> : (
+                            <table>
+                                <thead>
+                                    <tr><th>Concepto</th><th className="right">Monto mensual</th><th></th></tr>
+                                </thead>
+                                <tbody>
+                                    {state.gastosFijos.map(g => (
+                                        <tr key={g.id}>
+                                            <td><strong>{g.concepto}</strong></td>
+                                            <td className="right">{fmt(g.monto)}</td>
+                                            <td className="right"><button className="btn-danger" onClick={() => eliminarFijo(g.id)}>Eliminar</button></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </>
+            )}
+
+            {subtab === "variables" && (
+                <>
+                    <div className="card">
+                        <div className="card-header"><div className="card-title">Registrar gasto</div></div>
+                        <div className="form-grid">
+                            <div>
+                                <label>Fecha</label>
+                                <input type="date" value={formVar.fecha} onChange={e => setFormVar({...formVar, fecha: e.target.value})} />
+                            </div>
+                            <div>
+                                <label>Concepto</label>
+                                <input type="text" placeholder="ej. Mercado Disco" value={formVar.concepto}
+                                    onChange={e => setFormVar({...formVar, concepto: e.target.value})} />
+                            </div>
+                            <div>
+                                <label>Categoría</label>
+                                <select value={formVar.categoria} onChange={e => setFormVar({...formVar, categoria: e.target.value})}>
+                                    {categorias.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label>Monto ($)</label>
+                                <input type="number" placeholder="0" value={formVar.monto}
+                                    onChange={e => setFormVar({...formVar, monto: e.target.value})} />
+                            </div>
+                            <div style={{display: "flex", alignItems: "flex-end"}}>
+                                <button className="btn" onClick={agregarVar}>Agregar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <div className="card-header">
+                            <div className="card-title">Gastos variables</div>
+                            <div style={{fontSize: "13px"}}>Este mes: <strong>{fmt(calcs.gastosVariablesTotal)}</strong></div>
+                        </div>
+                        {state.gastosVariables.length === 0 ? <div className="empty">Sin gastos registrados.</div> : (
+                            <table>
+                                <thead>
+                                    <tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th className="right">Monto</th><th></th></tr>
+                                </thead>
+                                <tbody>
+                                    {[...state.gastosVariables].reverse().map(g => (
+                                        <tr key={g.id}>
+                                            <td style={{color: "var(--text-mid)", fontSize: "13px"}}>{new Date(g.fecha).toLocaleDateString("es-UY")}</td>
+                                            <td><strong>{g.concepto}</strong></td>
+                                            <td><span className="badge badge-gray">{g.categoria}</span></td>
+                                            <td className="right">{fmt(g.monto)}</td>
+                                            <td className="right"><button className="btn-danger" onClick={() => eliminarVar(g.id)}>Eliminar</button></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </>
+            )}
+        </>
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TAB: DEUDAS Y CUOTAS
+// ═══════════════════════════════════════════════════════════════
+function TabDeudas({ state, setState, calcs }) {
+    const [subtab, setSubtab] = useState("cuotas");
+    const [estrategia, setEstrategia] = useState("avalancha");
+
+    const [formDeuda, setFormDeuda] = useState({ concepto: "", monto: "", tasaAnual: "", pagoMinimo: "" });
+    const [formCuota, setFormCuota] = useState({
+        concepto: "", cuotaMonto: "", cuotasTotales: "", cuotasPagadas: "0", tasaAnual: "0", diaPago: "10"
+    });
+
+    const agregarDeuda = () => {
+        if (!formDeuda.concepto || !formDeuda.monto) return;
+        setState(s => ({
+            ...s,
+            deudas: [...s.deudas, {
+                id: Date.now(), concepto: formDeuda.concepto,
+                monto: Number(formDeuda.monto),
+                tasaAnual: Number(formDeuda.tasaAnual) || 0,
+                pagoMinimo: Number(formDeuda.pagoMinimo) || 0
+            }]
+        }));
+        setFormDeuda({ concepto: "", monto: "", tasaAnual: "", pagoMinimo: "" });
+    };
+
+    const agregarCuota = () => {
+        if (!formCuota.concepto || !formCuota.cuotaMonto || !formCuota.cuotasTotales) return;
+        setState(s => ({
+            ...s,
+            cuotas: [...s.cuotas, {
+                id: Date.now(),
+                concepto: formCuota.concepto,
+                cuotaMonto: Number(formCuota.cuotaMonto),
+                cuotasTotales: Number(formCuota.cuotasTotales),
+                cuotasPagadas: Number(formCuota.cuotasPagadas),
+                tasaAnual: Number(formCuota.tasaAnual),
+                diaPago: Number(formCuota.diaPago)
+            }]
+        }));
+        setFormCuota({ concepto: "", cuotaMonto: "", cuotasTotales: "", cuotasPagadas: "0", tasaAnual: "0", diaPago: "10" });
+    };
+
+    const eliminarDeuda = (id) => setState(s => ({ ...s, deudas: s.deudas.filter(d => d.id !== id) }));
+    const eliminarCuota = (id) => setState(s => ({ ...s, cuotas: s.cuotas.filter(c => c.id !== id) }));
+
+    const pagarCuota = (id) => {
+        setState(s => ({
+            ...s,
+            cuotas: s.cuotas.map(c => c.id === id && c.cuotasPagadas < c.cuotasTotales
+                ? {...c, cuotasPagadas: c.cuotasPagadas + 1} : c)
+        }));
+    };
+
+    // Ordenar deudas por estrategia
+    const deudasOrdenadas = useMemo(() => {
+        const copy = [...state.deudas];
+        if (estrategia === "avalancha") return copy.sort((a,b) => b.tasaAnual - a.tasaAnual);
+        return copy.sort((a,b) => a.monto - b.monto); // bola de nieve
+    }, [state.deudas, estrategia]);
+
+    return (
+        <>
+            <h2 className="section-title">Deudas y cuotas</h2>
+            <p className="section-subtitle">Las cuotas son compras que pagás en partes (electrodomésticos, etc). Las deudas son saldos con intereses (tarjeta, préstamos).</p>
+
+            <div className="tabs" style={{marginBottom: "24px"}}>
+                <button className={`tab ${subtab === "cuotas" ? "active" : ""}`} onClick={() => setSubtab("cuotas")}>Cuotas activas</button>
+                <button className={`tab ${subtab === "deudas" ? "active" : ""}`} onClick={() => setSubtab("deudas")}>Deudas con interés</button>
+                <button className={`tab ${subtab === "estrategia" ? "active" : ""}`} onClick={() => setSubtab("estrategia")}>Plan para salir</button>
+            </div>
+
+            {subtab === "cuotas" && (
+                <>
+                    <div className="card">
+                        <div className="card-header"><div className="card-title">Agregar compra en cuotas</div></div>
+                        <div className="form-grid">
+                            <div>
+                                <label>Concepto</label>
+                                <input type="text" placeholder="ej. Heladera" value={formCuota.concepto}
+                                    onChange={e => setFormCuota({...formCuota, concepto: e.target.value})} />
+                            </div>
+                            <div>
+                                <label>Valor de la cuota</label>
+                                <input type="number" placeholder="0" value={formCuota.cuotaMonto}
+                                    onChange={e => setFormCuota({...formCuota, cuotaMonto: e.target.value})} />
+                            </div>
+                            <div>
+                                <label>Total de cuotas</label>
+                                <input type="number" placeholder="12" value={formCuota.cuotasTotales}
+                                    onChange={e => setFormCuota({...formCuota, cuotasTotales: e.target.value})} />
+                            </div>
+                            <div>
+                                <label>Ya pagadas</label>
+                                <input type="number" placeholder="0" value={formCuota.cuotasPagadas}
+                                    onChange={e => setFormCuota({...formCuota, cuotasPagadas: e.target.value})} />
+                            </div>
+                            <div>
+                                <label>Día de pago</label>
+                                <input type="number" placeholder="10" min="1" max="31" value={formCuota.diaPago}
+                                    onChange={e => setFormCuota({...formCuota, diaPago: e.target.value})} />
+                            </div>
+                            <div style={{display: "flex", alignItems: "flex-end"}}>
+                                <button className="btn" onClick={agregarCuota}>Agregar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <div className="card-header">
+                            <div className="card-title">Cuotas activas</div>
+                            <div style={{fontSize: "13px"}}>
+                                Mensual: <strong>{fmt(calcs.cuotasMensual)}</strong> · Pendiente total: <strong>{fmt(calcs.cuotasPendientes)}</strong>
+                            </div>
+                        </div>
+                        {state.cuotas.length === 0 ? <div className="empty">Sin cuotas registradas.</div> : (
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Concepto</th>
+                                        <th>Progreso</th>
+                                        <th className="right">Cuota</th>
+                                        <th className="right">Pendiente</th>
+                                        <th>Día pago</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {state.cuotas.map(c => {
+                                        const pct = (c.cuotasPagadas / c.cuotasTotales) * 100;
+                                        const pendiente = (c.cuotasTotales - c.cuotasPagadas) * c.cuotaMonto;
+                                        const terminado = c.cuotasPagadas >= c.cuotasTotales;
+                                        return (
+                                            <tr key={c.id}>
+                                                <td>
+                                                    <strong>{c.concepto}</strong>
+                                                    {terminado && <div><span className="badge badge-green">Pagado</span></div>}
+                                                </td>
+                                                <td>
+                                                    <div style={{fontSize: "12px", color: "var(--text-mid)"}}>
+                                                        {c.cuotasPagadas} / {c.cuotasTotales}
+                                                    </div>
+                                                    <div className="progress-bar"><div className="progress-fill" style={{width: pct + "%"}}></div></div>
+                                                </td>
+                                                <td className="right">{fmt(c.cuotaMonto)}</td>
+                                                <td className="right"><strong>{fmt(pendiente)}</strong></td>
+                                                <td>Día {c.diaPago}</td>
+                                                <td className="right" style={{whiteSpace: "nowrap"}}>
+                                                    {!terminado && <button className="btn btn-secondary" style={{padding: "6px 10px", fontSize: "12px", marginRight: "6px"}} onClick={() => pagarCuota(c.id)}>Marcar pagada</button>}
+                                                    <button className="btn-danger" onClick={() => eliminarCuota(c.id)}>Eliminar</button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </>
+            )}
+
+            {subtab === "deudas" && (
+                <>
+                    <div className="card">
+                        <div className="card-header"><div className="card-title">Agregar deuda con interés</div></div>
+                        <div className="form-grid">
+                            <div>
+                                <label>Concepto</label>
+                                <input type="text" placeholder="ej. Tarjeta Visa" value={formDeuda.concepto}
+                                    onChange={e => setFormDeuda({...formDeuda, concepto: e.target.value})} />
+                            </div>
+                            <div>
+                                <label>Saldo actual</label>
+                                <input type="number" placeholder="0" value={formDeuda.monto}
+                                    onChange={e => setFormDeuda({...formDeuda, monto: e.target.value})} />
+                            </div>
+                            <div>
+                                <label>Tasa anual %</label>
+                                <input type="number" step="0.01" placeholder="85" value={formDeuda.tasaAnual}
+                                    onChange={e => setFormDeuda({...formDeuda, tasaAnual: e.target.value})} />
+                            </div>
+                            <div>
+                                <label>Pago mínimo mensual</label>
+                                <input type="number" placeholder="0" value={formDeuda.pagoMinimo}
+                                    onChange={e => setFormDeuda({...formDeuda, pagoMinimo: e.target.value})} />
+                            </div>
+                            <div style={{display: "flex", alignItems: "flex-end"}}>
+                                <button className="btn" onClick={agregarDeuda}>Agregar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <div className="card-header">
+                            <div className="card-title">Deudas activas</div>
+                            <div style={{fontSize: "13px"}}>Total adeudado: <strong>{fmt(calcs.deudasTotal)}</strong></div>
+                        </div>
+                        {state.deudas.length === 0 ? <div className="empty">Sin deudas. Excelente.</div> : (
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Concepto</th>
+                                        <th className="right">Saldo</th>
+                                        <th className="right">Tasa anual</th>
+                                        <th className="right">Pago mínimo</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {state.deudas.map(d => (
+                                        <tr key={d.id}>
+                                            <td><strong>{d.concepto}</strong></td>
+                                            <td className="right">{fmt(d.monto)}</td>
+                                            <td className="right"><span className={`badge ${d.tasaAnual > 50 ? "badge-red" : d.tasaAnual > 20 ? "badge-yellow" : "badge-green"}`}>{d.tasaAnual}%</span></td>
+                                            <td className="right">{fmt(d.pagoMinimo)}</td>
+                                            <td className="right"><button className="btn-danger" onClick={() => eliminarDeuda(d.id)}>Eliminar</button></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </>
+            )}
+
+            {subtab === "estrategia" && (
+                <>
+                    <div className="alert info">
+                        <div className="alert-title">Dos estrategias para salir de deudas</div>
+                        <div className="alert-text">
+                            <strong>Avalancha:</strong> pagás primero las de mayor tasa. Ahorra más dinero en intereses.<br/>
+                            <strong>Bola de nieve:</strong> pagás primero las de menor saldo. Motiva más porque las vas liquidando rápido.
+                        </div>
+                    </div>
+
+                    <div className="strategy-toggle">
+                        <button className={`strategy-btn ${estrategia === "avalancha" ? "active" : ""}`} onClick={() => setEstrategia("avalancha")}>Avalancha (recomendada)</button>
+                        <button className={`strategy-btn ${estrategia === "bola" ? "active" : ""}`} onClick={() => setEstrategia("bola")}>Bola de nieve</button>
+                    </div>
+
+                    <div className="card">
+                        <div className="card-header">
+                            <div className="card-title">Orden sugerido de pago</div>
+                        </div>
+                        {deudasOrdenadas.length === 0 ? <div className="empty">Sin deudas para ordenar.</div> : (
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Prioridad</th>
+                                        <th>Concepto</th>
+                                        <th className="right">Saldo</th>
+                                        <th className="right">Tasa</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {deudasOrdenadas.map((d, i) => (
+                                        <tr key={d.id}>
+                                            <td><strong style={{fontSize: "18px"}}>{i + 1}</strong></td>
+                                            <td><strong>{d.concepto}</strong></td>
+                                            <td className="right">{fmt(d.monto)}</td>
+                                            <td className="right">{d.tasaAnual}%</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                        <div className="small-note">
+                            Pagá siempre el mínimo de todas las deudas. Cualquier plata extra va primero a la N° 1 hasta liquidarla. Después pasás a la N° 2.
+                        </div>
+                    </div>
+                </>
+            )}
+        </>
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TAB: SCORE FINANCIERO
+// ═══════════════════════════════════════════════════════════════
+function TabScore({ calcs }) {
+    const chartRef = useRef(null);
+    const chartInstance = useRef(null);
+
+    useEffect(() => {
+        if (!chartRef.current) return;
+        if (chartInstance.current) chartInstance.current.destroy();
+
+        // Circular progress
+        chartInstance.current = new Chart(chartRef.current, {
+            type: "doughnut",
+            data: {
+                datasets: [{
+                    data: [calcs.scoreTotal, 100 - calcs.scoreTotal],
+                    backgroundColor: [
+                        calcs.scoreTotal >= 65 ? "#16a34a" : calcs.scoreTotal >= 50 ? "#ca8a04" : "#dc2626",
+                        "#f0f0f0"
+                    ],
+                    borderWidth: 0,
+                    circumference: 360,
+                    rotation: -90
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: "80%",
+                plugins: { legend: { display: false }, tooltip: { enabled: false } }
+            }
+        });
+
+        return () => { if (chartInstance.current) chartInstance.current.destroy(); };
+    }, [calcs]);
+
+    const factoresLabels = {
+        dti: "Ratio deuda/ingreso",
+        ahorro: "Tasa de ahorro",
+        fijos: "Gastos fijos controlados",
+        tasas: "Tasas de interés bajas",
+        compromiso: "Compromiso futuro bajo"
+    };
+
+    const recomendaciones = [];
+    if (calcs.factores.dti < 60) recomendaciones.push("Tus pagos de deuda consumen más del 20% del ingreso. Priorizá reducir saldos de tarjeta antes de tomar nuevas deudas.");
+    if (calcs.factores.ahorro < 50) recomendaciones.push("Tu tasa de ahorro es baja. Intentá separar aunque sea un 10% del ingreso apenas entra.");
+    if (calcs.factores.tasas < 50) recomendaciones.push("Tenés deudas con tasas altas. Considerá refinanciar con un préstamo de menor tasa (bancos, BHU).");
+    if (calcs.factores.fijos < 50) recomendaciones.push("Tus gastos fijos son muy altos comparados con lo que entra. Revisá servicios y suscripciones que puedas bajar.");
+    if (calcs.factores.compromiso < 60) recomendaciones.push("Tenés muchas cuotas pendientes comprometidas a futuro. Evitá sumar nuevas hasta liquidar algunas.");
+    if (recomendaciones.length === 0) recomendaciones.push("Tu situación financiera es sólida. Seguí así y considerá empezar a invertir el excedente.");
+
+    return (
+        <>
+            <h2 className="section-title">Score financiero</h2>
+            <p className="section-subtitle">Un número del 0 al 100 que resume qué tan saludable está tu economía personal en base a 5 factores.</p>
+
+            <div className="card">
+                <div className="score-card">
+                    <div className="score-circle">
+                        <canvas ref={chartRef}></canvas>
+                        <div className="score-number">
+                            <div className="val">{calcs.scoreTotal}</div>
+                            <div className="max">de 100</div>
+                            <div className="score-label">{calcs.scoreLabel}</div>
+                        </div>
+                    </div>
+                    <div className="score-details">
+                        <div className="metric-row">
+                            <span className="metric-label">{factoresLabels.dti}</span>
+                            <span className="metric-value">{Math.round(calcs.factores.dti)}/100</span>
+                        </div>
+                        <div className="metric-row">
+                            <span className="metric-label">{factoresLabels.ahorro}</span>
+                            <span className="metric-value">{Math.round(calcs.factores.ahorro)}/100</span>
+                        </div>
+                        <div className="metric-row">
+                            <span className="metric-label">{factoresLabels.fijos}</span>
+                            <span className="metric-value">{Math.round(calcs.factores.fijos)}/100</span>
+                        </div>
+                        <div className="metric-row">
+                            <span className="metric-label">{factoresLabels.tasas}</span>
+                            <span className="metric-value">{Math.round(calcs.factores.tasas)}/100</span>
+                        </div>
+                        <div className="metric-row">
+                            <span className="metric-label">{factoresLabels.compromiso}</span>
+                            <span className="metric-value">{Math.round(calcs.factores.compromiso)}/100</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="card">
+                <div className="card-header"><div className="card-title">Cómo se calcula</div></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Indicador</th>
+                            <th className="right">Valor actual</th>
+                            <th>Referencia saludable</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Ratio deuda / ingreso</strong></td>
+                            <td className="right">{calcs.dti.toFixed(1)}%</td>
+                            <td>Menor a 36%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tasa de ahorro</strong></td>
+                            <td className="right">{calcs.tasaAhorro.toFixed(1)}%</td>
+                            <td>Mayor a 20%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Gastos fijos / ingreso</strong></td>
+                            <td className="right">{calcs.ingresoMensual > 0 ? ((calcs.gastosFijosTotal / calcs.ingresoMensual) * 100).toFixed(1) : 0}%</td>
+                            <td>Menor a 50%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Compromiso futuro (cuotas)</strong></td>
+                            <td className="right">{fmt(calcs.cuotasPendientes)}</td>
+                            <td>Menor a 3 meses de ingreso</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div className="card">
+                <div className="card-header"><div className="card-title">Recomendaciones</div></div>
+                <ol style={{paddingLeft: "20px", lineHeight: "1.8"}}>
+                    {recomendaciones.map((r, i) => <li key={i} style={{marginBottom: "8px"}}>{r}</li>)}
+                </ol>
+            </div>
+        </>
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TAB: CALCULADORA "¿PUEDO COMPRARLO?"
+// ═══════════════════════════════════════════════════════════════
+function TabCalculadora({ calcs }) {
+    const [precio, setPrecio] = useState("");
+    const [cuotas, setCuotas] = useState("12");
+    const [tasa, setTasa] = useState("65");
+
+    const resultado = useMemo(() => {
+        const P = Number(precio);
+        if (!P || P <= 0) return null;
+
+        // Escenario 1: Ahorrar y pagar en efectivo
+        const disponibleMes = Math.max(0, calcs.disponibleMes);
+        const mesesAhorro = disponibleMes > 0 ? Math.ceil(P / disponibleMes) : null;
+
+        // Escenario 2: Cuotas con interés
+        const n = Number(cuotas);
+        const iMensual = (Number(tasa) / 100) / 12;
+        let cuotaMensual, totalPagado, intereses;
+        if (iMensual === 0) {
+            cuotaMensual = P / n;
+            totalPagado = P;
+            intereses = 0;
+        } else {
+            cuotaMensual = (P * iMensual) / (1 - Math.pow(1 + iMensual, -n));
+            totalPagado = cuotaMensual * n;
+            intereses = totalPagado - P;
+        }
+
+        // Escenario 3: Invertir esa plata a 12% anual (plazo fijo UI aprox)
+        const rendimientoAnual = 0.12;
+        const valorFuturo12Meses = P * (1 + rendimientoAnual);
+        const gananciaInvirtiendo = valorFuturo12Meses - P;
+
+        // Impacto en budget mensual
+        const nuevoDisponible = calcs.disponibleMes - cuotaMensual;
+        const impactoPct = calcs.ingresoMensual > 0 ? (cuotaMensual / calcs.ingresoMensual) * 100 : 0;
+
+        // Veredicto
+        let veredicto, veredictoTipo;
+        if (nuevoDisponible < 0) {
+            veredicto = "No conviene. La cuota te dejaría en rojo cada mes.";
+            veredictoTipo = "danger";
+        } else if (impactoPct > 20) {
+            veredicto = "Cuidado. La cuota representa más del 20% de tu ingreso. Pensalo bien.";
+            veredictoTipo = "warning";
+        } else if (mesesAhorro && mesesAhorro <= 6) {
+            veredicto = `Mejor ahorrá. En ${mesesAhorro} meses lo podés pagar en efectivo y te ahorrás ${fmt(intereses)} en intereses.`;
+            veredictoTipo = "info";
+        } else {
+            veredicto = "Viable en cuotas, pero comparalo contra ahorrar.";
+            veredictoTipo = "success";
+        }
+
+        return {
+            mesesAhorro, cuotaMensual, totalPagado, intereses,
+            gananciaInvirtiendo, valorFuturo12Meses,
+            nuevoDisponible, impactoPct, veredicto, veredictoTipo
+        };
+    }, [precio, cuotas, tasa, calcs]);
+
+    return (
+        <>
+            <h2 className="section-title">¿Puedo comprarlo?</h2>
+            <p className="section-subtitle">Ingresá el precio de algo que querés comprar y te mostramos 3 escenarios para decidir con números reales.</p>
+
+            <div className="card">
+                <div className="card-header"><div className="card-title">Lo que querés comprar</div></div>
+                <div className="form-grid">
+                    <div>
+                        <label>Precio de contado ($)</label>
+                        <input type="number" placeholder="ej. 30000" value={precio}
+                            onChange={e => setPrecio(e.target.value)} />
+                    </div>
+                    <div>
+                        <label>N° de cuotas (si financiás)</label>
+                        <input type="number" placeholder="12" value={cuotas}
+                            onChange={e => setCuotas(e.target.value)} />
+                    </div>
+                    <div>
+                        <label>Tasa anual de financiación %</label>
+                        <input type="number" step="0.1" placeholder="65" value={tasa}
+                            onChange={e => setTasa(e.target.value)} />
+                    </div>
+                </div>
+                <div className="small-note">Las tasas de financiación en Uruguay suelen ir de 30% (préstamo bancario) a 80% (tarjeta de crédito).</div>
+            </div>
+
+            {resultado && (
+                <>
+                    <div className="card">
+                        <div className="card-header"><div className="card-title">Los 3 escenarios</div></div>
+
+                        <div className="calc-scenario">
+                            <div>
+                                <div className="scenario-name">Escenario A · Ahorrar y pagar contado</div>
+                                <div className="scenario-detail">
+                                    {resultado.mesesAhorro
+                                        ? `Tardarías ${resultado.mesesAhorro} meses ahorrando ${fmt(calcs.disponibleMes)} por mes. Sin intereses.`
+                                        : "No tenés disponible mensual positivo para ahorrar. Revisá tu presupuesto."}
+                                </div>
+                            </div>
+                            <div className="scenario-value" style={{color: "var(--green)"}}>
+                                {fmt(Number(precio))}
+                            </div>
+                        </div>
+
+                        <div className="calc-scenario">
+                            <div>
+                                <div className="scenario-name">Escenario B · Comprar ahora en {cuotas} cuotas</div>
+                                <div className="scenario-detail">
+                                    Cuota mensual {fmt(resultado.cuotaMensual)} · Pagás en total {fmt(resultado.totalPagado)} · Intereses: <strong style={{color: "var(--red)"}}>{fmt(resultado.intereses)}</strong>
+                                </div>
+                            </div>
+                            <div className="scenario-value" style={{color: "var(--red)"}}>
+                                {fmt(resultado.totalPagado)}
+                            </div>
+                        </div>
+
+                        <div className="calc-scenario">
+                            <div>
+                                <div className="scenario-name">Escenario C · Si esa misma plata la invirtieras (12% anual)</div>
+                                <div className="scenario-detail">
+                                    En 12 meses tendrías {fmt(resultado.valorFuturo12Meses)} · Ganancia: <strong style={{color: "var(--green)"}}>{fmt(resultado.gananciaInvirtiendo)}</strong>
+                                </div>
+                            </div>
+                            <div className="scenario-value" style={{color: "var(--blue)"}}>
+                                +{fmt(resultado.gananciaInvirtiendo)}
+                            </div>
+                        </div>
+
+                        <div className="calc-verdict" style={{
+                            borderColor: resultado.veredictoTipo === "danger" ? "var(--red)"
+                                : resultado.veredictoTipo === "warning" ? "var(--yellow)"
+                                : resultado.veredictoTipo === "info" ? "var(--blue)" : "var(--green)"
+                        }}>
+                            {resultado.veredicto}
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <div className="card-header"><div className="card-title">Impacto en tu presupuesto mensual</div></div>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td style={{color: "var(--text-mid)"}}>Disponible actual por mes</td>
+                                    <td className="right"><strong>{fmt(calcs.disponibleMes)}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style={{color: "var(--text-mid)"}}>Cuota a sumar</td>
+                                    <td className="right" style={{color: "var(--red)"}}>- {fmt(resultado.cuotaMensual)}</td>
+                                </tr>
+                                <tr className="total-row">
+                                    <td>Nuevo disponible</td>
+                                    <td className="right" style={{color: resultado.nuevoDisponible >= 0 ? "var(--green)" : "var(--red)"}}>
+                                        {fmt(resultado.nuevoDisponible)}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style={{color: "var(--text-mid)"}}>% del ingreso comprometido por la cuota</td>
+                                    <td className="right">
+                                        <span className={`badge ${resultado.impactoPct > 20 ? "badge-red" : resultado.impactoPct > 10 ? "badge-yellow" : "badge-green"}`}>
+                                            {resultado.impactoPct.toFixed(1)}%
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </>
+            )}
+        </>
+    );
+}
+
+ReactDOM.render(<App />, document.getElementById("root"));
+</script>
+</body>
+</html>
